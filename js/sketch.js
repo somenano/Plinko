@@ -5,8 +5,7 @@
 var Engine = Matter.Engine,
   World = Matter.World,
   Events = Matter.Events,
-  Bodies = Matter.Bodies,
-  Render = Matter.Render;
+  Bodies = Matter.Bodies;
 
 var engine;
 var world;
@@ -17,15 +16,21 @@ var bounds = [];
 var natricon_images = {};
 
 var plinko_radius = 15;
-var spacing = 100;
+var spacing = 105;
 var compartment_boundary_height = 100;
 var compartment_boundary_width = 10;
 var particle_radius = 35;
 var nano_dot;
 
+p5.disableFriendlyErrors = true; // disables FES -- performance
+
 function preload() {
-  // ding = loadSound('../sounds/ding.mp3');
-  nano_dot = loadImage('images/nano_dot.png');
+  try {
+    nano_dot = loadImage('images/nano_dot.png');
+  }
+  catch (err) {
+    console.error(err);
+  }
 }
 
 function setup() {
@@ -33,24 +38,9 @@ function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
   colorMode(RGB);
   engine = Engine.create();
+  frameRate(30);
   world = engine.world;
-  world.gravity.y = 1;
-
-  function collision(event) {
-    var pairs = event.pairs;
-    for (var i = 0; i < pairs.length; i++) {
-      var labelA = pairs[i].bodyA.label;
-      var labelB = pairs[i].bodyB.label;
-      if (labelA == 'particle' && labelB == 'plinko') {
-        //ding.play();
-      }
-      if (labelA == 'plinko' && labelB == 'particle') {
-        //ding.play();
-      }
-    }
-  }
-
-  Events.on(engine, 'collisionStart', collision);
+  world.gravity.y = 2;
 
   // Set plinkos
   let x = 0;
@@ -93,15 +83,37 @@ function setup() {
 }
 
 function newParticle(address) {
-  let path = get_natricon(address);
-  loadImage(path, function(d) {
-    console.debug('successful loadImage for '+ address);
-    var p = new Particle(window.innerWidth/2, particle_radius*-2, particle_radius, d);
+
+  if (Object.keys(natricon_images).indexOf(address) != -1) {
+
+    var p = new Particle(window.innerWidth/2, particle_radius*-2, particle_radius, address);
     particles.push(p);
-  }, function(event) {
-    console.error('failed to loadImage for '+ address);
-    console.error(event);
-  });
+  
+  } else {
+
+    console.log('Natricon not found in cache, loading: '+ address);
+    const path = get_natricon(address, 'svg');
+    loadImage(path, function(img) {
+      // console.debug('successful loadImage for '+ address);
+      try {
+        // Check if image loaded correctly
+        image(img, window.innerWidth+128, 0);
+      } catch(err) {
+        // console.error(err);
+        console.error('svg didnt load properly, trying png');
+        loadImage(get_natricon(address, 'png'), function(png) {
+          natricon_images[address] = png;
+          newParticle(address);
+        });
+        return;
+      }
+      natricon_images[address] = img;
+      newParticle(address);
+    }, function(event) {
+        console.error('failed to loadImage for '+ address);
+        console.error(event);
+    });
+  }
 }
 
 function draw() {
@@ -122,9 +134,20 @@ function draw() {
   for (var i = 0; i < bounds.length; i++) {
     bounds[i].show();
   }
+
+  textSize(32);
+  text('SomeNano Plinko', 10, 30);
+  textSize(12);
+  text('Every falling head is a real-time Nano transaction.\nFollow me: @SomeNanoTweets', 10, 50);
+  text('Frame rate: '+ frameRateSample.toFixed(0), 10, height-10);
 }
 
 function drop_test_natricon() {
   // This simply drops the binance cold wallet natricon
   newParticle('nano_3x4ui45q1cw8hydmfdn4ec5ijsdqi4ryp14g4ayh71jcdkwmddrq7ca9xzn9');
 }
+
+var frameRateSample = 0;
+setInterval(function() {
+  frameRateSample = frameRate();
+}, 1*1000);

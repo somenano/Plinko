@@ -1,7 +1,7 @@
 // Thanks to CodingTrain for the initial code of plinko:
 // https://github.com/CodingTrain/website/tree/master/CodingChallenges/CC_062_plinko/P5
 
-function Particle(x, y, r, img) {
+function Particle(x, y, r, address) {
   // this.hue = random(360);
   var options = {
     restitution: 0.5,
@@ -11,8 +11,8 @@ function Particle(x, y, r, img) {
   x += random(-1*window.innerWidth/4, window.innerWidth/4);
   this.body = Bodies.circle(x, y, r, options);
   this.body.label = 'particle';
-  this.img = img;
   this.r = r;
+  this.address = address;
   World.add(world, this.body);
 }
 
@@ -29,9 +29,9 @@ Particle.prototype.show = function() {
   var rot = this.body.angle
   push();
   translate(pos.x, pos.y);
-  // ellipse(0, 0, this.r * 2);
   angleMode(RADIANS);
   rotate(rot);
-  image(this.img, -64, -64);
+  // ellipse(0, 0, this.r * 2);
+  image(natricon_images[this.address], -64, -64, 128, 128);
   pop();
 };

@@ -9,14 +9,24 @@ const get_request = function(path, cb) {
   xhttp.send();
 }
 
-const get_natricon = function(address) {
+const get_natricon = function(address, format) {
     // https://natricon.com/documentation
 
     let path = 'https://natricon.com/api/v1/nano?address='+address;
-    path += '&format=png';
+    path += '&format='+format;
     path += '&size=128';
     path += '&outline=true';
     path += '&outline_color=black';
+    path += '&svc=plinko.somenano.com';
 
     return path;
+}
+
+const load_natricon = function(address, cb) {
+  const path = get_natricon(address);
+  get_request(path, function(data) {
+    if (data.response) {
+      cb(data.response);
+    }
+  });
 }
