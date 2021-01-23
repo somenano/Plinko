@@ -91,7 +91,7 @@ function newParticle(address) {
   
   } else {
 
-    console.log('Natricon not found in cache, loading: '+ address);
+    // console.log('Natricon not found in cache, loading: '+ address);
     const path = get_natricon(address, 'svg');
     loadImage(path, function(img) {
       // console.debug('successful loadImage for '+ address);
